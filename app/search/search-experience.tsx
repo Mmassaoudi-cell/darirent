@@ -80,7 +80,7 @@ export function SearchExperience({ initialParams, locale }: { initialParams: Rec
             {!data.properties.length && <div className="empty-state"><h2>No matching homes yet</h2><p>Save this search or invite a founding owner to list transparently.</p><Link className="button button-primary" href="/list-property">List a property</Link></div>}
             <nav className="pagination" aria-label="Pagination"><Link aria-disabled={data.pagination.page <= 1} href={pageHref(Math.max(1, data.pagination.page - 1))}>Previous</Link><span>Page {data.pagination.page} / {data.pagination.pages}</span><Link aria-disabled={data.pagination.page >= data.pagination.pages} href={pageHref(Math.min(data.pagination.pages, data.pagination.page + 1))}>Next</Link></nav>
           </section>
-          <aside className={`map-panel ${view === "results" ? "mobile-hidden-map" : ""}`}><MapView properties={data.properties} /><div className="map-data-note">Real coordinates · OpenStreetMap basemap · listings update with filters</div></aside>
+          <aside className={`map-panel ${view === "results" ? "mobile-hidden-map" : ""}`}><MapView properties={data.properties} locale={locale} /><div className="map-data-note">Real coordinates · OpenStreetMap basemap · listings update with filters</div></aside>
         </div>
       )}
     </section>

@@ -5,6 +5,7 @@ import { getDb } from "../../../db";
 import { inspections, opportunityScores, properties, propertyImages, users } from "../../../db/schema";
 import { ContactButton } from "../../components/ContactButton";
 import { Header } from "../../components/Header";
+import { ViewTracker } from "../../components/ViewTracker";
 import { readLocale } from "../../lib/i18n";
 import { scoreLabel } from "../../lib/score";
 
@@ -28,6 +29,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
   const inspection = inspectionRows[0];
   const moveInCash = property.priceDt + property.depositDt + property.agencyFeeDt;
   return <main dir={locale === "ar" ? "rtl" : "ltr"}>
+    <ViewTracker propertyId={property.id} />
     <Header locale={locale} />
     {property.isPreview && <div className="preview-banner">Launch preview: this example demonstrates the product and cannot be contacted or rented.</div>}
     <section className="listing-shell">
@@ -40,7 +42,7 @@ export default async function ListingPage({ params, searchParams }: PageProps) {
         <strong className="detail-price">{property.priceDt.toLocaleString("fr-TN")} DT <span>/ month</span></strong>
         <p>{property.sizeM2} m² · {property.furnished ? "Furnished" : "Unfurnished"}{property.parking ? " · Parking" : ""}{property.elevator ? " · Elevator" : ""}</p>
         <div className="owner-line"><span className={row.owner.identityVerifiedAt ? "trust-dot verified" : "trust-dot"} /> {row.owner.name} · {row.owner.identityVerifiedAt ? "Identity verified" : "Identity review pending"}</div>
-        <ContactButton propertyId={property.id} disabled={property.isPreview || !row.owner.phone} />
+        <ContactButton propertyId={property.id} locale={locale} disabled={property.isPreview || !row.owner.phone} />
         <Link className="button button-secondary button-block" href={`/inspect/${property.id}?lang=${locale}`}>Start guided inspection</Link>
       </aside>
       <section className="decision-panel">

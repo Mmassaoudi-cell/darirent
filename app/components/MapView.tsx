@@ -2,10 +2,11 @@
 
 import maplibregl from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import type { Locale } from "../lib/i18n";
 
 type MapProperty = { id: string; title: string; neighborhood: string; lat: number; lng: number; priceDt: number };
 
-export function MapView({ properties }: { properties: MapProperty[] }) {
+export function MapView({ properties, locale }: { properties: MapProperty[]; locale: Locale }) {
   const container = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!container.current) return;
@@ -23,13 +24,13 @@ export function MapView({ properties }: { properties: MapProperty[] }) {
     for (const property of properties) {
       const marker = document.createElement("a");
       marker.className = "map-price-marker";
-      marker.href = `/listing/${property.id}`;
+      marker.href = `/listing/${property.id}?lang=${locale}`;
       marker.textContent = `${property.priceDt.toLocaleString("fr-TN")} DT`;
       marker.setAttribute("aria-label", `${property.title}, ${property.priceDt} DT`);
       new maplibregl.Marker({ element: marker, anchor: "bottom" }).setLngLat([property.lng, property.lat])
         .setPopup(new maplibregl.Popup({ offset: 18 }).setText(`${property.title} · ${property.neighborhood}`)).addTo(map);
     }
     return () => map.remove();
-  }, [properties]);
+  }, [properties, locale]);
   return <div ref={container} className="real-map" aria-label="Interactive rental map of Greater Tunis" />;
 }

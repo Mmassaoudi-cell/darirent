@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: PageProps) {
           </div>
         </div>
         <div className="hero-decision-card" aria-label="Example decision summary">
-          <div className="photo-ambient photo-ambient-one"><span>AI INSPECTION READY</span></div>
+          <div className="photo-ambient photo-ambient-one"><span>GUIDED CAPTURE READY</span></div>
           <div className="decision-heading"><div><small>Aïn Zaghouan Nord · S+2</small><strong>1,450 DT <span>/ month</span></strong></div><div className="score-orb">86</div></div>
           <div className="decision-grid"><span>Price value <b>88</b></span><span>Condition <b>91</b></span><span>Listing trust <b>74</b></span><span>Location fit <b>87</b></span></div>
           <p className="preview-note">Launch-preview data is clearly labeled and cannot be contacted.</p>
@@ -39,7 +39,7 @@ export default async function Home({ searchParams }: PageProps) {
         <article><span>03</span><h2>{t.price}</h2><p>A visible score breakdown—not an unexplained AI opinion.</p></article>
       </section>
       <section className="inspection-band">
-        <div><span className="eyebrow">Flagship workflow</span><h2>Inspect a rental found anywhere.</h2><p>Invite the owner, capture the required rooms, and keep a condition record. Visual AI is observational and does not replace professional inspection.</p></div>
+        <div><span className="eyebrow">Flagship workflow</span><h2>Document a rental found anywhere.</h2><p>Invite the owner, capture the required rooms, and keep a consistent condition record. The workflow checks coverage and evidence integrity; it does not diagnose defects.</p></div>
         <Link className="button button-light" href={`/search?lang=${locale}`}>{t.inspectCta}</Link>
       </section>
       <footer className="site-footer"><span>DariRent Tunisia · Private launch beta</span><nav><Link href="/methodology">Score methodology</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav></footer>

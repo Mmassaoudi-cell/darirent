@@ -22,10 +22,15 @@ export async function POST(request: Request, context: Context) {
     const files = form.getAll("images").filter((value): value is File => value instanceof File);
     if (!files.length) return Response.json({ error: "At least one image is required" }, { status: 400 });
     if (files.length > 12) return Response.json({ error: "Upload up to 12 images at a time" }, { status: 400 });
+    if (files.some((file) => !file.type.startsWith("image/"))) {
+      return Response.json({ error: "Every uploaded file must be an image" }, { status: 400 });
+    }
+    if (files.some((file) => file.size > 8_000_000)) {
+      return Response.json({ error: "Each image must be 8 MB or smaller" }, { status: 400 });
+    }
     const existing = await db.select().from(propertyImages).where(eq(propertyImages.propertyId, id)).orderBy(asc(propertyImages.sortOrder));
     const uploaded = [];
     for (const [index, file] of files.entries()) {
-      if (!file.type.startsWith("image/") || file.size > 8_000_000) continue;
       const extension = file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "").toLowerCase() || "jpg";
       const key = `properties/${id}/${crypto.randomUUID()}.${extension}`;
       await env.UPLOADS.put(key, file.stream(), { httpMetadata: { contentType: file.type } });

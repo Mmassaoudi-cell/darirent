@@ -1,14 +1,16 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { messages, properties, users } from "../../../db/schema";
-import { apiError } from "../../lib/api";
+import { apiError, unauthorized } from "../../lib/api";
 import { upsertCurrentUser } from "../../lib/current-user";
+import { copy, readLocale, type Locale } from "../../lib/i18n";
+import { enforceDailyRateLimit, rateLimited } from "../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const payload = (await request.json()) as { propertyId?: string };
+    const payload = (await request.json()) as { propertyId?: string; locale?: Locale };
     if (!payload.propertyId) return Response.json({ error: "Property is required" }, { status: 400 });
     const db = getDb();
     const [row] = await db.select({ property: properties, owner: users }).from(properties)
@@ -18,9 +20,13 @@ export async function POST(request: Request) {
       return Response.json({ error: "Contact is disabled for launch-preview listings" }, { status: 409 });
     }
     const current = await upsertCurrentUser();
-    const body = `Bonjour, je vous contacte via DariRent au sujet de ${row.property.title} à ${row.property.neighborhood}.`;
+    if (!current) return unauthorized();
+    const limit = await enforceDailyRateLimit(db, current.id, "contact", 20);
+    if (!limit.allowed) return rateLimited(limit.retryAfterSeconds, "Daily contact limit reached. Please try again tomorrow.");
+    const locale = readLocale(payload.locale);
+    const body = copy[locale].whatsapp(row.property.title, row.property.neighborhood);
     await db.insert(messages).values({
-      id: crypto.randomUUID(), propertyId: row.property.id, senderId: current?.id ?? null,
+      id: crypto.randomUUID(), propertyId: row.property.id, senderId: current.id,
       recipientId: row.owner.id, body, channel: "whatsapp_click",
     });
     const phone = row.owner.phone.replace(/[^0-9]/g, "").replace(/^0/, "216");

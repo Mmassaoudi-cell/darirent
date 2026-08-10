@@ -260,3 +260,23 @@ export const propertyViews = sqliteTable(
   },
   (table) => [index("idx_property_views_property_created").on(table.propertyId, table.createdAt)],
 );
+
+export const rateLimitCounters = sqliteTable(
+  "rate_limit_counters",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    action: text("action", { enum: ["contact", "create_property"] }).notNull(),
+    windowStart: integer("window_start", { mode: "timestamp" }).notNull(),
+    count: integer("count").notNull().default(1),
+  },
+  (table) => [
+    uniqueIndex("idx_rate_limit_user_action_window").on(
+      table.userId,
+      table.action,
+      table.windowStart,
+    ),
+  ],
+);

@@ -1,17 +1,17 @@
 import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb } from "../../../../db";
-import { inspections, opportunityScores, properties, propertyImages, users } from "../../../../db/schema";
+import { inspections, opportunityScores, properties, propertyImages, propertyViews, users } from "../../../../db/schema";
 import { getChatGPTUser } from "../../../chatgpt-auth";
 import { apiError, forbidden, unauthorized } from "../../../lib/api";
 import { upsertCurrentUser } from "../../../lib/current-user";
-import { scoreNewProperty } from "../../../lib/score";
+import { recordPropertyScore } from "../../../lib/scoring-service";
 import { canEditProperty, parsePropertyInput } from "../../../lib/validation";
 
 export const dynamic = "force-dynamic";
 
 type Context = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, context: Context) {
+export async function GET(request: Request, context: Context) {
   try {
     const { id } = await context.params;
     const db = getDb();
@@ -25,6 +25,18 @@ export async function GET(_request: Request, context: Context) {
     const authenticated = await getChatGPTUser();
     if (row.property.status !== "published" && authenticated?.userId !== row.property.ownerId) {
       return Response.json({ error: "Property not found" }, { status: 404 });
+    }
+    if (new URL(request.url).searchParams.get("track") === "1") {
+      const day = new Date().toISOString().slice(0, 10);
+      const fingerprint = `${authenticated?.userId ?? "anonymous"}|${request.headers.get("user-agent") ?? "unknown"}|${day}|${id}`;
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(fingerprint));
+      const sessionHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      await db.insert(propertyViews).values({
+        id: crypto.randomUUID(),
+        propertyId: id,
+        userId: authenticated?.userId ?? null,
+        sessionHash,
+      });
     }
     const [images, scoreRows, inspectionRows] = await Promise.all([
       db.select().from(propertyImages).where(eq(propertyImages.propertyId, id)).orderBy(asc(propertyImages.sortOrder)),
@@ -63,7 +75,7 @@ export async function PATCH(request: Request, context: Context) {
     const [existing] = await db.select().from(properties).where(eq(properties.id, id)).limit(1);
     if (!existing) return Response.json({ error: "Property not found" }, { status: 404 });
     if (!canEditProperty(current.id, existing.ownerId, current.role)) return forbidden();
-    const payload = await request.json();
+    const payload = (await request.json()) as Record<string, unknown>;
     const parsed = parsePropertyInput({ ...existing, ...payload });
     if (!parsed.ok) return Response.json({ error: parsed.error }, { status: 400 });
     const [property] = await db
@@ -71,15 +83,7 @@ export async function PATCH(request: Request, context: Context) {
       .set({ ...parsed.data, updatedAt: new Date() })
       .where(and(eq(properties.id, id), eq(properties.ownerId, existing.ownerId)))
       .returning();
-    const score = scoreNewProperty({
-      priceDt: property.priceDt,
-      sizeM2: property.sizeM2,
-      furnished: property.furnished,
-      parking: property.parking,
-      elevator: property.elevator,
-      identityVerified: Boolean(current.identityVerifiedAt),
-    });
-    await db.insert(opportunityScores).values({ id: crypto.randomUUID(), propertyId: id, ...score });
+    const score = await recordPropertyScore(db, property, Boolean(current.identityVerifiedAt));
     return Response.json({ property, score });
   } catch (error) {
     return apiError(error);

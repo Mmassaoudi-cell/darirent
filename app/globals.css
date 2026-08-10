@@ -93,6 +93,8 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .card-decision b { display:block; margin-top:3px; color:var(--green-dark); font-size:12px; }
 .map-panel { position:sticky; top:147px; height:calc(100vh - 147px); }
 .real-map { width:100%; height:100%; }
+[dir="rtl"] .maplibregl-map { direction:ltr; }
+[dir="rtl"] .site-header,[dir="rtl"] .dashboard-row,[dir="rtl"] .cost-panel,[dir="rtl"] .score-row { text-align:right; }
 .map-price-marker { display:block; padding:7px 9px; border:2px solid white; border-radius:9px; background:var(--green); color:#fff; font-size:11px; font-weight:850; box-shadow:0 5px 14px rgba(0,0,0,.22); }
 .map-data-note { position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:2; padding:8px 11px; border-radius:999px; background:rgba(255,255,255,.94); box-shadow:0 5px 20px rgba(0,0,0,.1); white-space:nowrap; color:var(--muted); font-size:10px; }
 .pagination { display:flex; justify-content:center; align-items:center; gap:18px; margin-top:24px; font-size:13px; }
@@ -155,6 +157,14 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .coverage-result { text-align:center; }
 .coverage-result .large-score { margin:0 auto; width:110px; height:110px; }
 .coverage-result ul { list-style:none; padding:0; text-align:left; }
+.admin-shell { max-width:1100px; margin:0 auto; padding:64px 24px 100px; }
+.verification-queue { display:grid; gap:18px; margin-top:32px; }
+.verification-card { display:grid; grid-template-columns:1fr auto; gap:18px; padding:22px; border:1px solid var(--line); border-radius:18px; background:var(--paper); }
+.verification-card small { display:block; color:var(--muted); margin-top:5px; }
+.verification-card nav { display:flex; gap:14px; }
+.verification-actions { grid-column:1/-1; display:grid; gap:12px; }
+.verification-actions textarea { display:block; width:100%; min-height:72px; }
+.verification-actions > div { display:flex; gap:10px; }
 .coverage-result li { display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--line); text-transform:capitalize; }
 .coverage-result li.captured strong { color:var(--green); }
 .coverage-result li.missing strong { color:var(--warning); }

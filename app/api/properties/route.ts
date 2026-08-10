@@ -3,8 +3,9 @@ import { getDb } from "../../../db";
 import { opportunityScores, properties, propertyImages, users } from "../../../db/schema";
 import { apiError, unauthorized } from "../../lib/api";
 import { upsertCurrentUser } from "../../lib/current-user";
-import { scoreNewProperty } from "../../lib/score";
+import { recordPropertyScore } from "../../lib/scoring-service";
 import { parseFilters, parsePropertyInput } from "../../lib/validation";
+import { enforceDailyRateLimit, rateLimited } from "../../lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -80,21 +81,15 @@ export async function POST(request: Request) {
     if (!/^\+?[0-9 ()-]{8,20}$/.test(phone)) {
       return Response.json({ error: "A valid WhatsApp phone number is required" }, { status: 400 });
     }
+    const limit = await enforceDailyRateLimit(db, current.id, "create_property", 10);
+    if (!limit.allowed) return rateLimited(limit.retryAfterSeconds, "Daily listing creation limit reached. Please try again tomorrow.");
     await db.update(users).set({ phone }).where(eq(users.id, current.id));
     const id = crypto.randomUUID();
     const [property] = await db
       .insert(properties)
       .values({ id, ownerId: current.id, ...parsed.data, isPreview: false })
       .returning();
-    const score = scoreNewProperty({
-      priceDt: property.priceDt,
-      sizeM2: property.sizeM2,
-      furnished: property.furnished,
-      parking: property.parking,
-      elevator: property.elevator,
-      identityVerified: Boolean(current.identityVerifiedAt),
-    });
-    await db.insert(opportunityScores).values({ id: crypto.randomUUID(), propertyId: id, ...score });
+    const score = await recordPropertyScore(db, property, Boolean(current.identityVerifiedAt));
     return Response.json({ property, score }, { status: 201 });
   } catch (error) {
     return apiError(error);

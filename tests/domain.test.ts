@@ -50,6 +50,17 @@ test("opportunity score is deterministic, clamped, and uses documented weights",
       identityVerified: false,
     }),
   );
+  const compsScore = scoreNewProperty({
+    priceDt: 1_400,
+    sizeM2: 100,
+    furnished: false,
+    parking: false,
+    elevator: false,
+    identityVerified: true,
+    priceReferenceDtM2: 13.75,
+    referenceSampleSize: 8,
+  });
+  assert.equal(compsScore.modelVersion, "comps-v1:n=8:median=13.75");
 });
 
 test("property validation rejects invalid Tunisian coordinates and preserves valid data", () => {

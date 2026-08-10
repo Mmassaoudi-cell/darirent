@@ -4,7 +4,7 @@ export type ScoreBreakdown = {
   trustScore: number;
   locationFit: number;
   composite: number;
-  modelVersion: "weighted-v1";
+  modelVersion: string;
 };
 
 export const SCORE_WEIGHTS = {
@@ -20,6 +20,7 @@ export function clampScore(value: number) {
 
 export function calculateCompositeScore(
   components: Omit<ScoreBreakdown, "composite" | "modelVersion">,
+  modelVersion = "weighted-v1",
 ): ScoreBreakdown {
   const priceValue = clampScore(components.priceValue);
   const conditionScore = clampScore(components.conditionScore);
@@ -37,7 +38,7 @@ export function calculateCompositeScore(
         trustScore * SCORE_WEIGHTS.trustScore +
         locationFit * SCORE_WEIGHTS.locationFit,
     ),
-    modelVersion: "weighted-v1",
+    modelVersion,
   };
 }
 
@@ -48,19 +49,25 @@ export function scoreNewProperty(input: {
   parking: boolean;
   elevator: boolean;
   identityVerified: boolean;
+  priceReferenceDtM2?: number;
+  referenceSampleSize?: number;
 }) {
   const pricePerM2 = input.priceDt / Math.max(input.sizeM2, 1);
-  const priceValue = 92 - Math.abs(pricePerM2 - 14) * 4;
+  const reference = input.priceReferenceDtM2 ?? 14;
+  const priceValue = 92 - Math.abs(pricePerM2 - reference) * 4;
   const conditionScore =
     62 + (input.furnished ? 6 : 0) + (input.parking ? 5 : 0) + (input.elevator ? 4 : 0);
   const trustScore = input.identityVerified ? 90 : 62;
 
-  return calculateCompositeScore({
-    priceValue,
-    conditionScore,
-    trustScore,
-    locationFit: 75,
-  });
+  const modelVersion = input.priceReferenceDtM2 === undefined
+    ? input.referenceSampleSize === undefined
+      ? "weighted-v1"
+      : `comps-fallback-v1:n=${input.referenceSampleSize}:reference=14`
+    : `comps-v1:n=${input.referenceSampleSize ?? 0}:median=${input.priceReferenceDtM2.toFixed(2)}`;
+  return calculateCompositeScore(
+    { priceValue, conditionScore, trustScore, locationFit: 75 },
+    modelVersion,
+  );
 }
 
 export function scoreLabel(score: number) {
