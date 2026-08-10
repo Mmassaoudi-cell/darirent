@@ -27,6 +27,11 @@ export function MapView({ properties, locale }: { properties: MapProperty[]; loc
       marker.href = `/listing/${property.id}?lang=${locale}`;
       marker.textContent = `${property.priceDt.toLocaleString("fr-TN")} DT`;
       marker.setAttribute("aria-label", `${property.title}, ${property.priceDt} DT`);
+      marker.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.location.assign(marker.href);
+      });
       new maplibregl.Marker({ element: marker, anchor: "bottom" }).setLngLat([property.lng, property.lat])
         .setPopup(new maplibregl.Popup({ offset: 18 }).setText(`${property.title} · ${property.neighborhood}`)).addTo(map);
     }

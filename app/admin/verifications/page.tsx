@@ -1,5 +1,4 @@
 import { desc, eq } from "drizzle-orm";
-import { forbidden } from "../../lib/api";
 import { requireChatGPTUser } from "../../chatgpt-auth";
 import { Header } from "../../components/Header";
 import { upsertAuthenticatedUser } from "../../lib/current-user";
@@ -16,7 +15,7 @@ export default function AdminVerificationsPage() {
 async function AdminQueue() {
   const authenticated = await requireChatGPTUser("/admin/verifications");
   const current = await upsertAuthenticatedUser(authenticated);
-  if (current.role !== "admin") return <section className="empty-state"><h1>Admin access required</h1><p>{await forbidden().text()}</p></section>;
+  if (current.role !== "admin") return <section className="empty-state"><h1>Admin access required</h1><p>Your account does not have permission to review private verification documents.</p></section>;
   const rows = await getDb()
     .select({ verification: verificationRequests, user: users })
     .from(verificationRequests)

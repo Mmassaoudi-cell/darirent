@@ -1,5 +1,5 @@
 import { count, desc, eq, inArray } from "drizzle-orm";
-import Link from "next/link";
+import { NativeLink as Link } from "../components/NativeLink";
 import { requireChatGPTUser } from "../chatgpt-auth";
 import { Header } from "../components/Header";
 import { getDb } from "../../db";

@@ -13,5 +13,5 @@ export default async function ListPropertyPage({ searchParams }: Props) {
 
 async function AuthenticatedOwner({ locale }: { locale: Locale }) {
   const user = await requireChatGPTUser(`/list-property?lang=${locale}`);
-  return <section className="workflow-shell"><div className="workflow-intro"><span className="eyebrow">Owner supply flow</span><h1>Publish with the costs renters need.</h1><p>Signed in as {user.displayName}. Start as a draft, add photographs, then publish when the facts and fees are complete.</p><ol><li>Property facts and exact fees</li><li>Owner photographs in R2 storage</li><li>Transparent opportunity-score breakdown</li><li>Optional guided condition capture</li></ol></div><ListPropertyForm /></section>;
+  return <section className="workflow-shell"><div className="workflow-intro"><span className="eyebrow">Owner supply flow</span><h1>Publish with the costs renters need.</h1><p>Signed in as {user.displayName}. Start as a draft, add photographs, then publish when the facts and fees are complete.</p><ol><li>Property facts and exact fees</li><li>Owner photographs in private storage</li><li>Transparent opportunity-score breakdown</li><li>Optional guided condition capture</li></ol></div><ListPropertyForm locale={locale} /></section>;
 }

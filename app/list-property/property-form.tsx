@@ -1,10 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { Locale } from "../lib/i18n";
 
-export function ListPropertyForm() {
-  const router = useRouter();
+export function ListPropertyForm({ locale }: { locale: Locale }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -27,7 +26,7 @@ export function ListPropertyForm() {
       const imageResponse = await fetch(`/api/properties/${data.property.id}/images`, { method: "POST", body: upload });
       if (!imageResponse.ok) setError("Listing created, but some photos could not be uploaded.");
     }
-    router.push(`/listing/${data.property.id}`); router.refresh();
+    window.location.assign(`/listing/${data.property.id}?lang=${locale}`);
   }
   return <form className="workflow-form" onSubmit={submit}>
     <div className="form-section"><h2>1. Property</h2><label>Title<input required name="title" maxLength={100} placeholder="Bright furnished S+2" /></label><div className="form-grid"><label>Neighborhood<input required name="neighborhood" placeholder="El Aouina" /></label><label>City<input required name="city" defaultValue="Tunis" /></label><label>Rooms<select name="rooms" defaultValue="S+2"><option>S+0</option><option>S+1</option><option>S+2</option><option>S+3</option><option>S+4+</option></select></label><label>Size m²<input required name="sizeM2" type="number" min="10" max="5000" defaultValue="100" /></label></div><label>Description<textarea name="description" rows={4} maxLength={2000} placeholder="Describe the property without inventing amenities." /></label></div>
