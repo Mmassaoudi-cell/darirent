@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { desc, eq } from "drizzle-orm";
 import { requireChatGPTUser } from "../../chatgpt-auth";
 import { Header } from "../../components/Header";
@@ -16,6 +17,7 @@ async function AdminQueue() {
   const authenticated = await requireChatGPTUser("/admin/verifications");
   const current = await upsertAuthenticatedUser(authenticated);
   if (current.role !== "admin") return <section className="empty-state"><h1>Admin access required</h1><p>Your account does not have permission to review private verification documents.</p></section>;
+  const alertsConfigured = Boolean(env.RESEND_API_KEY?.trim() && env.ALERT_FROM_EMAIL?.trim());
   const rows = await getDb()
     .select({ verification: verificationRequests, user: users })
     .from(verificationRequests)
@@ -27,6 +29,9 @@ async function AdminQueue() {
       <span className="eyebrow">Restricted review workspace</span>
       <h1>Owner verification queue</h1>
       <p>Documents remain private and each decision is recorded against the request.</p>
+      <p className="limitation-box" role="status">
+        Email alerts: {alertsConfigured ? "configured" : "not configured — set RESEND_API_KEY and ALERT_FROM_EMAIL"}
+      </p>
       <div className="verification-queue">
         {rows.map(({ verification, user }) => (
           <article className="verification-card" key={verification.id}>

@@ -75,6 +75,22 @@ test("PATCH /api/properties/:id rejects a renter editing another owner's listing
   assert.equal(response.status, 403);
 });
 
+test("admin operations show alert configuration only to administrators", async () => {
+  const adminHeaders = {
+    "oai-authenticated-user-id": "route-admin",
+    "oai-authenticated-user-email": "route-admin@example.test",
+  };
+  const adminResponse = await fetch(`${origin}/admin/verifications`, { headers: adminHeaders });
+  assert.equal(adminResponse.status, 200);
+  assert.match(await adminResponse.text(), /Email alerts:.*not configured/);
+
+  const renterResponse = await fetch(`${origin}/admin/verifications`, { headers });
+  assert.equal(renterResponse.status, 200);
+  const renterBody = await renterResponse.text();
+  assert.match(renterBody, /Admin access required/);
+  assert.doesNotMatch(renterBody, /RESEND_API_KEY/);
+});
+
 test("POST /api/properties/:id/images rejects excessive, non-image, and oversized uploads", async () => {
   const ownerHeaders = {
     "oai-authenticated-user-id": "route-owner",
