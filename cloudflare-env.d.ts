@@ -8,6 +8,7 @@ declare global {
       RESEND_API_KEY?: string;
       ALERT_FROM_EMAIL?: string;
       PUBLIC_SITE_URL?: string;
+      ADMIN_EMAIL?: string;
     }
   }
 }
